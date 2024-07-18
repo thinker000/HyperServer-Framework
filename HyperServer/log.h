@@ -7,6 +7,7 @@
 #include <list>
 #include <sstream>
 #include <fstream>
+#include <vector>
 
 namespace HyperServer
 {
@@ -39,13 +40,33 @@ namespace HyperServer
         };
     };
 
-    // 日志格式
+    // 日志格式化
     class LogFormatter
     {
         public:
             using ptr = std::shared_ptr<LogFormatter>;
+            LogFormatter(const std::string& pattern);
             std::string format(LogEvent::ptr event);
+            std::ostream& format(std::ostream& os,std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event);
+        public:
+            // 日志内容项格式化
+            class FormatItem{
+                public:
+                    using ptr = std::shared_ptr<FormatItem>;
+                    virtual ~FormatItem(){}
+                    virtual void format(std::ostream& os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event)=0;
+            };
+
+        public:
+            void init();                            // 初始化，解析日志模板
+            bool isError() const ;                  // 是否有错误
+            const std::string getPattern() const ;  // 返回日志模板
+        
         private:
+            std::string m_pattern;                  // 日志格式模板
+            std::vector<FormatItem::ptr> m_items;   // 日志格式解析后格式
+            bool m_error = false;                   // 是否有错误
+
     };
 
     // 日志输出目标
